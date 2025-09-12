@@ -45,9 +45,15 @@ RUN mkdir -p /var/www/html/wp-content/uploads \
 # Copiar configuración personalizada de WordPress
 COPY config/wp-config.php /var/www/html/
 
-# Copiar plugins y temas personalizados si existen
-COPY src/plugins/ /var/www/html/wp-content/plugins/
-COPY src/themes/ /var/www/html/wp-content/themes/
+# Crear directorios para plugins y themes personalizados
+RUN mkdir -p /var/www/html/wp-content/plugins/ \
+    && mkdir -p /var/www/html/wp-content/themes/
+
+# Copiar plugins y temas personalizados (incluyendo .gitkeep)
+COPY src/ /var/www/html/wp-content/
+
+# Remover archivos .gitkeep si existen
+RUN find /var/www/html/wp-content/ -name ".gitkeep" -delete || true
 
 # Script de inicialización
 COPY scripts/init.sh /usr/local/bin/
