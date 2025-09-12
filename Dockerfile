@@ -32,8 +32,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Descargar certificado SSL de Azure MySQL
-RUN wget -O /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem \
-    https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt \
+RUN mkdir -p /usr/local/share/ca-certificates \
+    && curl -o /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem \
+       https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt \
+    && chmod 644 /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem \
     && update-ca-certificates
 
 # Configurar PHP para producción
