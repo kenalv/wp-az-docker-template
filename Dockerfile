@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     redis-tools \
     wget \
     unzip \
+    ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
     zip \
@@ -30,6 +31,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Descargar certificado SSL de Azure MySQL
+RUN wget -O /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem \
+    https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt \
+    && update-ca-certificates
+
 # Configurar PHP para producción
 COPY config/php.ini /usr/local/etc/php/conf.d/custom.ini
 
@@ -44,6 +50,7 @@ RUN mkdir -p /var/www/html/wp-content/uploads \
 
 # Copiar configuración personalizada de WordPress
 COPY config/wp-config.php /var/www/html/
+COPY config/db-ssl-config.php /var/www/html/
 
 # Crear directorios para plugins y themes personalizados
 RUN mkdir -p /var/www/html/wp-content/plugins/ \

@@ -17,6 +17,10 @@ if ($is_azure) {
     define('DB_USER', getenv('MYSQL_USERNAME'));
     define('DB_PASSWORD', getenv('MYSQL_PASSWORD'));
     define('DB_HOST', getenv('MYSQL_HOST') . ':' . (getenv('MYSQL_PORT') ?: '3306'));
+    
+    // SSL configuration for Azure MySQL
+    define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL);
+    define('MYSQL_SSL_CA', '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem');
 } else {
     // Local development database
     define('DB_NAME', getenv('WORDPRESS_DB_NAME') ?: 'wordpress');
@@ -27,6 +31,12 @@ if ($is_azure) {
 
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
+
+// ** Custom database connection for Azure SSL ** //
+if ($is_azure && !defined('DB_SSL_CA')) {
+    define('DB_SSL_CA', '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem');
+    define('DB_SSL_VERIFY', false); // Set to true for strict verification
+}
 
 // ** Table prefix ** //
 $table_prefix = getenv('WORDPRESS_TABLE_PREFIX') ?: 'wp_';
@@ -121,3 +131,8 @@ if (!defined('ABSPATH')) {
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
+
+// Load custom SSL configuration for Azure MySQL
+if ($is_azure && file_exists(ABSPATH . 'db-ssl-config.php')) {
+    require_once ABSPATH . 'db-ssl-config.php';
+}
