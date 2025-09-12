@@ -52,11 +52,13 @@ RUN mkdir -p /var/www/html/wp-content/uploads \
 
 # Copiar configuración personalizada de WordPress
 COPY config/wp-config.php /var/www/html/
-COPY config/db-ssl-config.php /var/www/html/
 
 # Crear directorios para plugins y themes personalizados
 RUN mkdir -p /var/www/html/wp-content/plugins/ \
     && mkdir -p /var/www/html/wp-content/themes/
+
+# Copiar db.php personalizado para SSL
+COPY config/db.php /var/www/html/wp-content/
 
 # Copiar plugins y temas personalizados (incluyendo .gitkeep)
 COPY src/ /var/www/html/wp-content/

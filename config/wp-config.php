@@ -8,19 +8,24 @@
 
 // Environment detection
 $environment = getenv('WP_ENVIRONMENT_TYPE') ?: 'production';
-$is_azure = !empty(getenv('WEBSITE_SITE_NAME'));
+$is_azure = !empty(getenv('WEBSITE_SITE_NAME')) || !empty(getenv('AZURE_ENVIRONMENT'));
 
 // ** Database settings ** //
 if ($is_azure) {
-    // Azure MySQL Flexible Server configuration
+    // Azure MySQL Flexible Server configuration with SSL
     define('DB_NAME', getenv('MYSQL_DATABASE'));
     define('DB_USER', getenv('MYSQL_USERNAME'));
     define('DB_PASSWORD', getenv('MYSQL_PASSWORD'));
     define('DB_HOST', getenv('MYSQL_HOST') . ':' . (getenv('MYSQL_PORT') ?: '3306'));
     
-    // SSL configuration for Azure MySQL
-    define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL);
+    // SSL configuration for Azure MySQL Flexible Server
+    define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL | MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
     define('MYSQL_SSL_CA', '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem');
+    
+    // Custom db.php for SSL connection
+    if (!defined('DB_FILE')) {
+        define('DB_FILE', true);
+    }
 } else {
     // Local development database
     define('DB_NAME', getenv('WORDPRESS_DB_NAME') ?: 'wordpress');
@@ -31,12 +36,6 @@ if ($is_azure) {
 
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
-
-// ** Custom database connection for Azure SSL ** //
-if ($is_azure && !defined('DB_SSL_CA')) {
-    define('DB_SSL_CA', '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem');
-    define('DB_SSL_VERIFY', false); // Set to true for strict verification
-}
 
 // ** Table prefix ** //
 $table_prefix = getenv('WORDPRESS_TABLE_PREFIX') ?: 'wp_';
@@ -100,8 +99,19 @@ define('AUTOSAVE_INTERVAL', 300);
 
 // ** URL Configuration ** //
 if ($is_azure) {
-    define('WP_HOME', 'https://' . getenv('WEBSITE_SITE_NAME') . '.azurewebsites.net');
-    define('WP_SITEURL', 'https://' . getenv('WEBSITE_SITE_NAME') . '.azurewebsites.net');
+    // Use WEBSITE_SITE_NAME if available (system variable) or custom APP_URL
+    $site_name = getenv('WEBSITE_SITE_NAME') ?: getenv('APP_URL');
+    if ($site_name) {
+        if (strpos($site_name, 'http') === 0) {
+            // APP_URL already includes protocol
+            define('WP_HOME', $site_name);
+            define('WP_SITEURL', $site_name);
+        } else {
+            // WEBSITE_SITE_NAME needs protocol and domain
+            define('WP_HOME', 'https://' . $site_name . '.azurewebsites.net');
+            define('WP_SITEURL', 'https://' . $site_name . '.azurewebsites.net');
+        }
+    }
 } else {
     define('WP_HOME', 'http://localhost:8080');
     define('WP_SITEURL', 'http://localhost:8080');
@@ -131,8 +141,3 @@ if (!defined('ABSPATH')) {
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
-
-// Load custom SSL configuration for Azure MySQL
-if ($is_azure && file_exists(ABSPATH . 'db-ssl-config.php')) {
-    require_once ABSPATH . 'db-ssl-config.php';
-}
