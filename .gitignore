@@ -61,3 +61,7 @@ sitemap.xml.gz
 # Cache files
 wp-content/cache/
 wp-content/w3tc-config/
+
+#Exclude custom plugins and themes source code
+
+!config/wp-config.php
