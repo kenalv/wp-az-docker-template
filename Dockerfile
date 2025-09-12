@@ -57,8 +57,9 @@ COPY config/wp-config.php /var/www/html/
 RUN mkdir -p /var/www/html/wp-content/plugins/ \
     && mkdir -p /var/www/html/wp-content/themes/
 
-# Copiar db.php personalizado para SSL
+# Copiar db.php personalizado para SSL y health check
 COPY config/db.php /var/www/html/wp-content/
+COPY config/health.php /var/www/html/
 
 # Copiar plugins y temas personalizados (incluyendo .gitkeep)
 COPY src/ /var/www/html/wp-content/
