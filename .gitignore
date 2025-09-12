@@ -1,0 +1,63 @@
+# WordPress CMS Files
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Docker
+.dockerignore
+
+# Azure
+.azure/
+
+# GitHub secrets (important!)
+github-secrets.json
+azure-credentials.json
+
+# Temporary files
+*.tmp
+*.temp
+
+# WordPress specific
+wp-content/upgrade/
+wp-content/backup-db/
+sitemap.xml
+sitemap.xml.gz
+
+# Cache files
+wp-content/cache/
+wp-content/w3tc-config/
