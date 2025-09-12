@@ -6,7 +6,7 @@ Este proyecto despliega WordPress en Azure App Service usando contenedores Docke
 
 ```
 GitHub Repository
-    ↓ (Push to main/develop)
+    ↓ (Push to master)
 GitHub Actions Workflow
     ↓ (Build & Deploy)
 GitHub Container Registry (ghcr.io)
@@ -100,12 +100,12 @@ Configura manualmente las reglas de acceso y obtén las cadenas de conexión des
 
 ### 5. Desplegar
 
-Simplemente haz push a la rama `main` o `develop`:
+Simplemente haz push a la rama `master`:
 
 ```bash
 git add .
 git commit -m "Initial WordPress deployment"
-git push origin main
+git push origin master
 ```
 
 GitHub Actions se encargará automáticamente del build y deployment.
