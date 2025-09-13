@@ -36,6 +36,8 @@ if (getenv('AZURE_REDIS_HOST')) {
     define('WP_REDIS_DATABASE', 0);
     // Comentar esta línea si quieres probar sin SSL
     define('WP_REDIS_SCHEME', 'tls'); // Enable SSL for Azure
+    // Custom prefix from environment variable or default
+    define('WP_REDIS_PREFIX', getenv('WP_REDIS_PREFIX') ?: getenv('AZURE_WEBAPP_NAME') . ":");
 }
 
 // JWT Configuration
