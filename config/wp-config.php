@@ -31,9 +31,11 @@ if (getenv('AZURE_REDIS_HOST')) {
     define('WP_REDIS_HOST', getenv('AZURE_REDIS_HOST'));
     define('WP_REDIS_PORT', getenv('AZURE_REDIS_PORT') ?: 6380);
     define('WP_REDIS_PASSWORD', getenv('AZURE_REDIS_PASSWORD'));
-    define('WP_REDIS_TIMEOUT', 1);
-    define('WP_REDIS_READ_TIMEOUT', 1);
+    define('WP_REDIS_TIMEOUT', 2);
+    define('WP_REDIS_READ_TIMEOUT', 2);
     define('WP_REDIS_DATABASE', 0);
+    // Comentar esta línea si quieres probar sin SSL
+    define('WP_REDIS_SCHEME', 'tls'); // Enable SSL for Azure
 }
 
 // JWT Configuration
