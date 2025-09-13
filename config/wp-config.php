@@ -47,11 +47,11 @@ if (getenv('JWT_SECRET_KEY')) {
 }
 
 // Azure Storage Configuration
-if (getenv('AZURE_STORAGE_ACCOUNT')) {
-    define('AZURE_STORAGE_ACCOUNT', getenv('AZURE_STORAGE_ACCOUNT'));
-    define('AZURE_STORAGE_KEY', getenv('AZURE_STORAGE_KEY'));
-    define('AZURE_STORAGE_CONTAINER', getenv('AZURE_STORAGE_CONTAINER') ?: 'wordpress-media');
-    define('AZURE_STORAGE_URL', getenv('AZURE_STORAGE_URL'));
+if (getenv('MICROSOFT_AZURE_ACCOUNT_NAME')) {
+    define('MICROSOFT_AZURE_ACCOUNT_NAME', getenv('MICROSOFT_AZURE_ACCOUNT_NAME'));
+    define('MICROSOFT_AZURE_ACCOUNT_KEY', getenv('MICROSOFT_AZURE_ACCOUNT_KEY'));
+    define('MICROSOFT_AZURE_CONTAINER', getenv('MICROSOFT_AZURE_CONTAINER') ?: 'wordpress-media');
+    define('MICROSOFT_AZURE_USE_FOR_DEFAULT_UPLOAD', true);
 }
 
 // Debug configuration (disable in production)
