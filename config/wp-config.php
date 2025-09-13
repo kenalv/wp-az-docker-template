@@ -42,6 +42,14 @@ if (getenv('JWT_SECRET_KEY')) {
     define('JWT_AUTH_CORS_ENABLE', true);
 }
 
+// Azure Storage Configuration
+if (getenv('AZURE_STORAGE_ACCOUNT')) {
+    define('AZURE_STORAGE_ACCOUNT', getenv('AZURE_STORAGE_ACCOUNT'));
+    define('AZURE_STORAGE_KEY', getenv('AZURE_STORAGE_KEY'));
+    define('AZURE_STORAGE_CONTAINER', getenv('AZURE_STORAGE_CONTAINER') ?: 'wordpress-media');
+    define('AZURE_STORAGE_URL', getenv('AZURE_STORAGE_URL'));
+}
+
 // Debug configuration (disable in production)
 define('WP_DEBUG', false);
 define('WP_DEBUG_LOG', false);
