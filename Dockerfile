@@ -61,6 +61,7 @@ COPY config/debug-index.php /tmp/debug-index.php
 # Copiar db.php personalizado para SSL y health check
 COPY config/db.php /var/www/html/wp-content/
 COPY config/health.php /var/www/html/
+COPY config/status.php /var/www/html/
 
 # Copiar plugins y temas personalizados (incluyendo .gitkeep)
 COPY src/ /var/www/html/wp-content/
