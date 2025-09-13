@@ -47,15 +47,16 @@ RUN a2enconf wordpress && a2enmod rewrite headers deflate expires
 
 # Crear directorio para uploads y configurar permisos
 RUN mkdir -p /var/www/html/wp-content/uploads \
+    && mkdir -p /var/www/html/wp-content/plugins/ \
+    && mkdir -p /var/www/html/wp-content/themes/ \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Copiar configuración personalizada de WordPress
-COPY config/wp-config.php /var/www/html/
+# Copiar configuración personalizada de WordPress (como backup)
+COPY config/wp-config.php /tmp/wp-config-custom.php
 
-# Crear directorios para plugins y themes personalizados
-RUN mkdir -p /var/www/html/wp-content/plugins/ \
-    && mkdir -p /var/www/html/wp-content/themes/
+# Copiar archivos temporales de debug
+COPY config/debug-index.php /tmp/debug-index.php
 
 # Copiar db.php personalizado para SSL y health check
 COPY config/db.php /var/www/html/wp-content/

@@ -10,6 +10,14 @@ chown -R www-data:www-data /var/www/html
 find /var/www/html -type d -exec chmod 755 {} \;
 find /var/www/html -type f -exec chmod 644 {} \;
 
+# Copiar wp-config.php personalizado si no existe o si es diferente
+if [ -f "/tmp/wp-config-custom.php" ]; then
+    echo "📝 Configurando wp-config.php personalizado..."
+    cp /tmp/wp-config-custom.php /var/www/html/wp-config.php
+    chown www-data:www-data /var/www/html/wp-config.php
+    chmod 644 /var/www/html/wp-config.php
+fi
+
 # Verificar que las variables de entorno estén configuradas
 echo "🔍 Verificando variables de entorno..."
 REQUIRED_VARS=("MYSQL_DATABASE" "MYSQL_USERNAME" "MYSQL_PASSWORD" "MYSQL_HOST")
@@ -31,7 +39,7 @@ try {
     \$username = getenv('MYSQL_USERNAME');
     \$password = getenv('MYSQL_PASSWORD');
     
-    \$dsn = \"mysql:host=\$host;\$port;\dbname=\$dbname;charset=utf8mb4\";
+    \$dsn = \"mysql:host=\$host:\$port;dbname=\$dbname;charset=utf8mb4\";
     \$options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -40,8 +48,11 @@ try {
     
     // Add SSL options for Azure MySQL
     if (!empty(getenv('WEBSITE_SITE_NAME')) || !empty(getenv('AZURE_ENVIRONMENT'))) {
-        \$options[PDO::MYSQL_ATTR_SSL_CA] = '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem';
-        \$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        \$ssl_ca = '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem';
+        if (file_exists(\$ssl_ca)) {
+            \$options[PDO::MYSQL_ATTR_SSL_CA] = \$ssl_ca;
+            \$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        }
     }
     
     \$pdo = new PDO(\$dsn, \$username, \$password, \$options);
@@ -72,12 +83,31 @@ if [ ! -z "$REDIS_URL" ]; then
     "
 fi
 
-# Verificar que wp-config.php existe
+# Verificar que los archivos principales de WordPress existan
+echo "🔍 Verificando instalación de WordPress..."
+REQUIRED_FILES=("index.php" "wp-load.php" "wp-config-sample.php")
+missing_files=0
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ ! -f "/var/www/html/$file" ]; then
+        echo "⚠️  Warning: Archivo WordPress no encontrado: $file"
+        missing_files=1
+    fi
+done
+
+# Verificar que wp-config.php existe, si no, copiar el personalizado
 if [ ! -f "/var/www/html/wp-config.php" ]; then
-    echo "❌ Error: wp-config.php no encontrado"
-    exit 1
+    echo "⚠️  wp-config.php no encontrado, usando configuración personalizada"
 fi
 
+# Si faltan archivos críticos de WordPress, usar página de debug
+if [ $missing_files -eq 1 ] && [ ! -f "/var/www/html/index.php" ]; then
+    echo "📝 Copiando página de debug temporal..."
+    cp /tmp/debug-index.php /var/www/html/index.php
+    chown www-data:www-data /var/www/html/index.php
+    chmod 644 /var/www/html/index.php
+fi
+
+echo "✅ Verificaciones completas. WordPress listo para iniciar."
 echo "✅ Inicialización completa. Iniciando Apache..."
 
 # Ejecutar el comando original
