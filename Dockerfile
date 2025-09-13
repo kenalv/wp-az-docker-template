@@ -40,6 +40,8 @@ RUN mkdir -p /var/www/html/wp-content/mu-plugins \
 
 # Copy Azure wp-config and custom configuration
 COPY ./config/wp-config.php /var/www/html/wp-config.php
+COPY ./wp-content/plugins/ /var/www/html/wp-content/plugins/
+COPY ./wp-content/themes/ /var/www/html/wp-content/themes/
 
 # Set proper permissions for wp-content
 RUN chown -R www-data:www-data /var/www/html/wp-content \
