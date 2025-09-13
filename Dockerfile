@@ -23,8 +23,9 @@ COPY ./config/php.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY ./config/apache.conf /etc/apache2/conf-available/custom.conf
 
 # Enable Apache modules and custom configuration
-RUN a2enmod rewrite headers deflate expires
-RUN a2enconf custom
+RUN a2enmod rewrite headers deflate expires \
+    && a2enconf custom \
+    && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 
 # Copiar tus temas y plugins personalizados
