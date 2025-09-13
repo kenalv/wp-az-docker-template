@@ -12,22 +12,19 @@ RUN apt-get update && apt-get install -y \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# Descargar certificado SSL de Azure MySQL y configurar CA certificates
+# Descargar certificado SSL de Azure MySQL
 RUN mkdir -p /var/www/html/ssl \
     && curl -o /var/www/html/ssl/DigiCertGlobalRootCA.crt.pem \
        https://www.digicert.com/CACerts/DigiCertGlobalRootCA.crt \
-    && chmod 644 /var/www/html/ssl/DigiCertGlobalRootCA.crt.pem \
-    && cp /var/www/html/ssl/DigiCertGlobalRootCA.crt.pem /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt \
-    && update-ca-certificates
+    && chmod 644 /var/www/html/ssl/DigiCertGlobalRootCA.crt.pem
 
     # Copy PHP configuration for uploads and performance
 COPY ./config/php.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY ./config/apache.conf /etc/apache2/conf-available/custom.conf
 
 # Enable Apache modules and custom configuration
-RUN a2enmod rewrite headers deflate expires \
-    && a2enconf custom \
-    && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+RUN a2enmod rewrite headers deflate expires
+RUN a2enconf custom
 
 
 # Copiar tus temas y plugins personalizados
@@ -38,18 +35,16 @@ RUN mkdir -p /var/www/html/wp-content/mu-plugins \
     && mkdir -p /var/www/html/wp-content/themes \
     && mkdir -p /var/www/html/wp-content/uploads
 
-# Copy themes and plugins from src directory
-COPY ./src/ /var/www/html/wp-content/
+# Copy themes (these are usually more stable)
+COPY ./wp-content/themes/ /var/www/html/wp-content/themes/
 
 
-# Copy Azure wp-config and health checks
+# Limpiar archivos .gitkeep
+# Copy Azure wp-config directly
 COPY ./config/wp-config.php /var/www/html/wp-config.php
-COPY ./config/health.php /var/www/html/health.php
-COPY ./config/status.php /var/www/html/status.php
 
-# Set proper permissions for wp-content and clean .gitkeep files
-RUN find /var/www/html/wp-content/ -name ".gitkeep" -delete || true \
-    && chown -R www-data:www-data /var/www/html/wp-content \
+# Set proper permissions for wp-content
+RUN chown -R www-data:www-data /var/www/html/wp-content \
     && chmod -R 755 /var/www/html/wp-content \
     && chmod -R 775 /var/www/html/wp-content/uploads \
     && chown www-data:www-data /var/www/html/wp-config.php
