@@ -1,143 +1,69 @@
 <?php
-/**
- * WordPress Configuration for Azure App Service
- * 
- * This configuration supports both local development and Azure production environment
- * with MySQL Flexible Server, Redis Cache, and Blob Storage
- */
-
-// Environment detection
-$environment = getenv('WP_ENVIRONMENT_TYPE') ?: 'production';
-$is_azure = !empty(getenv('WEBSITE_SITE_NAME')) || !empty(getenv('AZURE_ENVIRONMENT'));
-
-// ** Database settings ** //
-if ($is_azure) {
-    // Azure MySQL Flexible Server configuration with SSL
-    define('DB_NAME', getenv('MYSQL_DATABASE'));
-    define('DB_USER', getenv('MYSQL_USERNAME'));
-    define('DB_PASSWORD', getenv('MYSQL_PASSWORD'));
-    define('DB_HOST', getenv('MYSQL_HOST') . ':' . (getenv('MYSQL_PORT') ?: '3306'));
-    
-    // SSL configuration for Azure MySQL Flexible Server
-    define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL | MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
-    define('MYSQL_SSL_CA', '/usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt.pem');
-    
-    // Custom db.php for SSL connection
-    if (!defined('DB_FILE')) {
-        define('DB_FILE', true);
-    }
-} else {
-    // Local development database
-    define('DB_NAME', getenv('WORDPRESS_DB_NAME') ?: 'wordpress');
-    define('DB_USER', getenv('WORDPRESS_DB_USER') ?: 'wordpress');
-    define('DB_PASSWORD', getenv('WORDPRESS_DB_PASSWORD') ?: 'wordpress_password');
-    define('DB_HOST', getenv('WORDPRESS_DB_HOST') ?: 'mysql:3306');
+// Configuración SSL para Azure Web App
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    $_SERVER['HTTPS'] = 'on';
 }
 
+// Configuración de URLs para HTTPS
+define('WP_HOME', 'https://' . $_SERVER['HTTP_HOST']);
+define('WP_SITEURL', 'https://' . $_SERVER['HTTP_HOST']);
+
+// Forzar HTTPS en admin
+define('FORCE_SSL_ADMIN', true);
+
+// Configuración de contenido para HTTPS
+define('WP_CONTENT_URL', 'https://' . $_SERVER['HTTP_HOST'] . '/wp-content');
+
+// Configuración de base de datos desde variables de entorno
+define('DB_HOST', getenv('MYSQL_HOST'));
+define('DB_USER', getenv('MYSQL_USER'));
+define('DB_PASSWORD', getenv('MYSQL_PASSWORD'));
+define('DB_NAME', getenv('MYSQL_DATABASE'));
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
 
-// ** Table prefix ** //
-$table_prefix = getenv('WORDPRESS_TABLE_PREFIX') ?: 'wp_';
+// Prefijo de tablas
+$table_prefix = 'wp_';
 
-// ** Authentication keys and salts ** //
-// You should generate these at https://api.wordpress.org/secret-key/1.1/salt/
-define('AUTH_KEY',         getenv('WP_AUTH_KEY') ?: 'put your unique phrase here');
-define('SECURE_AUTH_KEY',  getenv('WP_SECURE_AUTH_KEY') ?: 'put your unique phrase here');
-define('LOGGED_IN_KEY',    getenv('WP_LOGGED_IN_KEY') ?: 'put your unique phrase here');
-define('NONCE_KEY',        getenv('WP_NONCE_KEY') ?: 'put your unique phrase here');
-define('AUTH_SALT',        getenv('WP_AUTH_SALT') ?: 'put your unique phrase here');
-define('SECURE_AUTH_SALT', getenv('WP_SECURE_AUTH_SALT') ?: 'put your unique phrase here');
-define('LOGGED_IN_SALT',   getenv('WP_LOGGED_IN_SALT') ?: 'put your unique phrase here');
-define('NONCE_SALT',       getenv('WP_NONCE_SALT') ?: 'put your unique phrase here');
-
-// ** Azure Blob Storage Configuration ** //
-if ($is_azure && getenv('AZURE_STORAGE_ACCOUNT')) {
-    define('AZURE_STORAGE_ACCOUNT', getenv('AZURE_STORAGE_ACCOUNT'));
-    define('AZURE_STORAGE_KEY', getenv('AZURE_STORAGE_KEY'));
-    define('AZURE_STORAGE_CONTAINER', getenv('AZURE_STORAGE_CONTAINER') ?: 'media');
-    define('AZURE_STORAGE_URL', 'https://' . AZURE_STORAGE_ACCOUNT . '.blob.core.windows.net/' . AZURE_STORAGE_CONTAINER);
-}
-
-// ** Redis Cache Configuration ** //
-if (getenv('REDIS_URL')) {
-    $redis_url = parse_url(getenv('REDIS_URL'));
-    define('WP_REDIS_HOST', $redis_url['host']);
-    define('WP_REDIS_PORT', $redis_url['port']);
-    if (isset($redis_url['pass'])) {
-        define('WP_REDIS_PASSWORD', $redis_url['pass']);
-    }
-    define('WP_REDIS_DATABASE', 0);
+// Configuración de Redis si está disponible
+if (getenv('AZURE_REDIS_HOST')) {
+    define('WP_REDIS_HOST', getenv('AZURE_REDIS_HOST'));
+    define('WP_REDIS_PORT', getenv('AZURE_REDIS_PORT') ?: 6380);
+    define('WP_REDIS_PASSWORD', getenv('AZURE_REDIS_PASSWORD'));
     define('WP_REDIS_TIMEOUT', 1);
     define('WP_REDIS_READ_TIMEOUT', 1);
-    define('WP_CACHE', true);
+    define('WP_REDIS_DATABASE', 0);
 }
 
-// ** WordPress debugging ** //
-if ($environment === 'development') {
-    define('WP_DEBUG', true);
-    define('WP_DEBUG_LOG', true);
-    define('WP_DEBUG_DISPLAY', true);
-    define('SCRIPT_DEBUG', true);
-} else {
-    define('WP_DEBUG', false);
-    define('WP_DEBUG_LOG', false);
-    define('WP_DEBUG_DISPLAY', false);
+// JWT Configuration
+if (getenv('JWT_SECRET_KEY')) {
+    define('JWT_AUTH_SECRET_KEY', getenv('JWT_SECRET_KEY'));
+    define('JWT_AUTH_CORS_ENABLE', true);
 }
 
-// ** Security enhancements ** //
-define('DISALLOW_FILE_EDIT', true);
-define('DISALLOW_FILE_MODS', false);
-define('FORCE_SSL_ADMIN', $is_azure);
-define('AUTOMATIC_UPDATER_DISABLED', false);
+// Debug configuration (disable in production)
+define('WP_DEBUG', false);
+define('WP_DEBUG_LOG', false);
+define('WP_DEBUG_DISPLAY', false);
+define('SCRIPT_DEBUG', false);
 
-// ** Performance optimizations ** //
+// Memory limits
 define('WP_MEMORY_LIMIT', '512M');
-define('WP_MAX_MEMORY_LIMIT', '512M');
-define('WP_POST_REVISIONS', 5);
-define('AUTOSAVE_INTERVAL', 300);
 
-// ** URL Configuration ** //
-if ($is_azure) {
-    // Use WEBSITE_SITE_NAME if available (system variable) or custom APP_URL
-    $site_name = getenv('WEBSITE_SITE_NAME') ?: getenv('APP_URL');
-    if ($site_name) {
-        if (strpos($site_name, 'http') === 0) {
-            // APP_URL already includes protocol
-            define('WP_HOME', $site_name);
-            define('WP_SITEURL', $site_name);
-        } else {
-            // WEBSITE_SITE_NAME needs protocol and domain
-            define('WP_HOME', 'https://' . $site_name . '.azurewebsites.net');
-            define('WP_SITEURL', 'https://' . $site_name . '.azurewebsites.net');
-        }
-    }
-} else {
-    define('WP_HOME', 'http://localhost:8080');
-    define('WP_SITEURL', 'http://localhost:8080');
-}
+// Security keys (se generan automáticamente si no existen)
+if (!defined('AUTH_KEY'))         define('AUTH_KEY',         getenv('WORDPRESS_AUTH_KEY') ?: 'put your unique phrase here');
+if (!defined('SECURE_AUTH_KEY'))  define('SECURE_AUTH_KEY',  getenv('WORDPRESS_SECURE_AUTH_KEY') ?: 'put your unique phrase here');
+if (!defined('LOGGED_IN_KEY'))    define('LOGGED_IN_KEY',    getenv('WORDPRESS_LOGGED_IN_KEY') ?: 'put your unique phrase here');
+if (!defined('NONCE_KEY'))        define('NONCE_KEY',        getenv('WORDPRESS_NONCE_KEY') ?: 'put your unique phrase here');
+if (!defined('AUTH_SALT'))        define('AUTH_SALT',        getenv('WORDPRESS_AUTH_SALT') ?: 'put your unique phrase here');
+if (!defined('SECURE_AUTH_SALT')) define('SECURE_AUTH_SALT', getenv('WORDPRESS_SECURE_AUTH_SALT') ?: 'put your unique phrase here');
+if (!defined('LOGGED_IN_SALT'))   define('LOGGED_IN_SALT',   getenv('WORDPRESS_LOGGED_IN_SALT') ?: 'put your unique phrase here');
+if (!defined('NONCE_SALT'))       define('NONCE_SALT',       getenv('WORDPRESS_NONCE_SALT') ?: 'put your unique phrase here');
 
-// ** File system configuration ** //
-define('FS_METHOD', 'direct');
-
-// ** Multisite configuration (if needed) ** //
-// define('WP_ALLOW_MULTISITE', true);
-
-// ** Language configuration ** //
-define('WPLANG', getenv('WP_LANG') ?: '');
-
-// ** Plugin specific configurations ** //
-// W3 Total Cache
-if (defined('WP_CACHE') && WP_CACHE) {
-    define('WP_CACHE_KEY_SALT', getenv('WEBSITE_SITE_NAME') ?: 'WP-AZ-DOCKER-TEMPLATE');
-}
-
-/* That's all, stop editing! Happy publishing. */
-
-/** Absolute path to the WordPress directory. */
+// Absolute path to WordPress directory
 if (!defined('ABSPATH')) {
-    define('ABSPATH', dirname(__FILE__) . '/');
+    define('ABSPATH', __DIR__ . '/');
 }
 
-/** Sets up WordPress vars and included files. */
+// Sets up WordPress vars and included files
 require_once ABSPATH . 'wp-settings.php';
