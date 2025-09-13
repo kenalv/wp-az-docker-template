@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: wp-az-docker-template    # Reemplazar con el nombre de tu App Service
+  AZURE_WEBAPP_NAME: wp-az-docker-template    # Replace with your Web App name
   CONTAINER_REGISTRY: ghcr.io
-  IMAGE_NAME: kenalv/wp-az-docker-template
+  IMAGE_NAME: kenalv/wp-az-docker-template    # Replace with your IMAGE NAME
 
 jobs:
   build-and-deploy:
