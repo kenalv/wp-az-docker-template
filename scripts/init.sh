@@ -85,7 +85,7 @@ fi
 
 # Verificar que los archivos principales de WordPress existan
 echo "🔍 Verificando instalación de WordPress..."
-REQUIRED_FILES=("index.php" "wp-load.php" "wp-config-sample.php")
+REQUIRED_FILES=("wp-load.php" "wp-admin/index.php" "wp-includes/version.php")
 missing_files=0
 for file in "${REQUIRED_FILES[@]}"; do
     if [ ! -f "/var/www/html/$file" ]; then
@@ -94,17 +94,26 @@ for file in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
-# Verificar que wp-config.php existe, si no, copiar el personalizado
-if [ ! -f "/var/www/html/wp-config.php" ]; then
-    echo "⚠️  wp-config.php no encontrado, usando configuración personalizada"
-fi
-
-# Si faltan archivos críticos de WordPress, usar página de debug
-if [ $missing_files -eq 1 ] && [ ! -f "/var/www/html/index.php" ]; then
-    echo "📝 Copiando página de debug temporal..."
-    cp /tmp/debug-index.php /var/www/html/index.php
-    chown www-data:www-data /var/www/html/index.php
-    chmod 644 /var/www/html/index.php
+# Si faltan archivos críticos, descargar WordPress
+if [ $missing_files -eq 1 ]; then
+    echo "📦 Descargando WordPress completo..."
+    cd /tmp
+    wget -q https://wordpress.org/latest.tar.gz
+    if [ $? -eq 0 ]; then
+        tar -xzf latest.tar.gz
+        cp -rf wordpress/* /var/www/html/
+        rm -rf wordpress latest.tar.gz
+        echo "✅ WordPress descargado e instalado correctamente"
+        chown -R www-data:www-data /var/www/html
+        chmod -R 755 /var/www/html
+    else
+        echo "❌ Error descargando WordPress, usando página de debug"
+        cp /tmp/debug-index.php /var/www/html/index.php
+        chown www-data:www-data /var/www/html/index.php
+        chmod 644 /var/www/html/index.php
+    fi
+else
+    echo "✅ WordPress ya está instalado"
 fi
 
 echo "✅ Verificaciones completas. WordPress listo para iniciar."

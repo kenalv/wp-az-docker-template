@@ -47,13 +47,17 @@ RUN a2enconf wordpress && a2enmod rewrite headers deflate expires \
     && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 # Descargar y extraer WordPress si no está presente
-RUN if [ ! -f "/var/www/html/index.php" ]; then \
-        echo "Descargando WordPress..."; \
+RUN echo "Verificando instalación de WordPress..." && \
+    if [ ! -f "/var/www/html/wp-load.php" ] || [ ! -f "/var/www/html/wp-admin/index.php" ]; then \
+        echo "Descargando WordPress completo..."; \
         cd /tmp && \
         wget -q https://wordpress.org/latest.tar.gz && \
         tar -xzf latest.tar.gz && \
-        cp -r wordpress/* /var/www/html/ && \
-        rm -rf wordpress latest.tar.gz; \
+        cp -rf wordpress/* /var/www/html/ && \
+        rm -rf wordpress latest.tar.gz && \
+        echo "WordPress descargado exitosamente"; \
+    else \
+        echo "WordPress ya está instalado"; \
     fi
 
 # Crear directorio para uploads y configurar permisos
