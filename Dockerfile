@@ -43,7 +43,18 @@ COPY config/php.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Configurar Apache para mejor rendimiento
 COPY config/apache.conf /etc/apache2/conf-available/wordpress.conf
-RUN a2enconf wordpress && a2enmod rewrite headers deflate expires
+RUN a2enconf wordpress && a2enmod rewrite headers deflate expires \
+    && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+
+# Descargar y extraer WordPress si no está presente
+RUN if [ ! -f "/var/www/html/index.php" ]; then \
+        echo "Descargando WordPress..."; \
+        cd /tmp && \
+        wget -q https://wordpress.org/latest.tar.gz && \
+        tar -xzf latest.tar.gz && \
+        cp -r wordpress/* /var/www/html/ && \
+        rm -rf wordpress latest.tar.gz; \
+    fi
 
 # Crear directorio para uploads y configurar permisos
 RUN mkdir -p /var/www/html/wp-content/uploads \
