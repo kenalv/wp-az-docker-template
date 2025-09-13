@@ -21,7 +21,8 @@ define('DB_PASSWORD', getenv('MYSQL_PASSWORD'));
 define('DB_NAME', getenv('MYSQL_DATABASE'));
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
-
+define('MYSQL_SSL_CA', '/var/www/html/ssl/DigiCertGlobalRootCA.crt.pem');
+define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL | MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
 // Prefijo de tablas
 $table_prefix = 'wp_';
 
