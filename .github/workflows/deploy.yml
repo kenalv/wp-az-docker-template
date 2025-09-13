@@ -8,7 +8,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: wp-az-docker-template    # Reemplazar con el nombre de tu App Service
   CONTAINER_REGISTRY: ghcr.io
-  IMAGE_NAME: kenalv/wp-az-docker-template:latest
+  IMAGE_NAME: kenalv/wp-az-docker-template
 
 jobs:
   build-and-deploy:
