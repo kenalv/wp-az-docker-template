@@ -36,14 +36,7 @@ RUN mkdir -p /var/www/html/wp-content/mu-plugins \
     && mkdir -p /var/www/html/wp-content/themes \
     && mkdir -p /var/www/html/wp-content/uploads
 
-# Copy themes (these are usually more stable)
-COPY ./wp-content/themes/ /var/www/html/wp-content/themes/
 
-
-# Install Azure Storage plugin
-RUN curl -o /tmp/azure-storage.zip https://downloads.wordpress.org/plugin/windows-azure-storage.latest-stable.zip \
-    && unzip /tmp/azure-storage.zip -d /var/www/html/wp-content/plugins/ \
-    && rm /tmp/azure-storage.zip
 
 # Copy Azure wp-config and custom configuration
 COPY ./config/wp-config.php /var/www/html/wp-config.php
